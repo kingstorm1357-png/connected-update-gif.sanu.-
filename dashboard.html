@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ahemad's Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body class="bg-slate-900 text-white font-sans p-4 md:p-8">
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <header class="flex justify-between items-center border-b border-slate-700 pb-4">
+            <h1 class="text-2xl md:text-3xl font-bold text-pink-500">Sana's Hub - Control Room 📡</h1>
+            <div id="connection-status" class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30">
+                Live Connected
+            </div>
+        </header>
+
+        <!-- Live Vitals Monitoring Row -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
+                <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider">Current Forgive Meter Status</h3>
+                <div class="flex items-center gap-4 mt-2">
+                    <span id="live-meter-val" class="text-4xl font-extrabold text-pink-400">--%</span>
+                    <p id="live-meter-desc" class="text-xs text-gray-400 italic">Waiting for real-time tracking packet...</p>
+                </div>
+            </div>
+            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
+                <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider">Last App Unlock Time</h3>
+                <div class="text-xl font-semibold text-sky-400 mt-2" id="live-login-time">
+                    Not Opened Yet Today
+                </div>
+            </div>
+        </div>
+
+        <!-- Broadcast Control Panel Card -->
+        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4">
+            <h2 class="text-lg font-bold text-gray-200">Push Live Content Broadcast Message</h2>
+            <div class="grid grid-cols-1 gap-3">
+                <input id="push-title" type="text" placeholder="Enter Catchy Title (e.g., Distance Means Nothing 🤍)" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:outline-none focus:border-pink-500 text-sm">
+                <textarea id="push-msg" rows="3" placeholder="Type romantic message context or status updates here..." class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:outline-none focus:border-pink-500 text-sm resize-none"></textarea>
+                
+                <div class="flex gap-2 items-center">
+                    <span class="text-sm text-gray-400">Select Mood Emoji:</span>
+                    <select id="push-emoji" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-lg focus:outline-none">
+                        <option value="❤️">❤️</option>
+                        <option value="🥺">🥺</option>
+                        <option value="🥰">🥰</option>
+                        <option value="🌹">🌹</option>
+                        <option value="✨">✨</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="dispatchBroadcast()" class="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 px-6 py-3 rounded-xl text-sm font-bold shadow-lg transition-all transform active:scale-95">
+                Update Sana's App Instantly
+            </button>
+        </div>
+
+        <!-- Activity Logger Tracker Streams -->
+        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-gray-200">Real-time Interface Clicks & Reactions Log</h2>
+                <button onclick="clearLogs()" class="text-xs text-rose-400 hover:underline">Clear Stream</button>
+            </div>
+            <div class="bg-slate-900 rounded-xl p-4 h-60 overflow-y-auto border border-slate-700 text-xs font-mono space-y-1.5" id="log-terminal">
+                <div class="text-slate-500">// System tracking engine initialized. Listening for remote triggers...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Core Firebase Synchronization Keys matching target endpoints
+        const firebaseConfig = {
+            apiKey: "AIzaSyD40XJfbJuUymNsrFw-mPcC63ES",
+            authDomain: "raza-new-first-multi.firebaseapp.com",
+            databaseURL: "https://raza-new-first-multi-default-rtdb.firebaseio.com/",
+            projectId: "raza-new-first-multi",
+            storageBucket: "raza-new-first-multi.appspot.com",
+            messagingSenderId: "941872189498",
+            appId: "1:941872189498:web:bc04b2ffe6ce0a660a95cc",
+            measurementId: "G-D14M17K8ES"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const logTerminal = document.getElementById('log-terminal');
+
+        // Realtime Event Stream Handlers: Core Listeners
+        db.ref('status/forgiveMeter').on('value', (snap) => {
+            const val = snap.val() || 50;
+            document.getElementById('live-meter-val').innerText = val + "%";
+            
+            let desc = "";
+            if(val < 30) desc = "Angry Alert Zone! 🌋";
+            else if(val >= 30 && val < 75) desc = "Heart melting down smoothly... 🍊";
+            else desc = "Absolute safe forgiveness achieved! 💖";
+            document.getElementById('live-meter-desc').innerText = desc;
+            
+            logEvent(`SYSTEM: Forgive Meter checked/shifted to ${val}%`);
+        });
+
+        db.ref('status/lastLogin').on('value', (snap) => {
+            if(snap.val()) {
+                document.getElementById('live-login-time').innerText = snap.val();
+                logEvent(`EVENT: Sana logged into the system portal successfully.`);
+            }
+        });
+
+        db.ref('events/reactions').on('child_added', (snap) => {
+            const data = snap.val();
+            logEvent(`REACTION: Sent live micro-love bursts [${data.type || 'heart'}] at ${data.time}`);
+        });
+
+        db.ref('events/clicks').on('child_added', (snap) => {
+            const data = snap.val();
+            logEvent(`CLICK-EVENT: Triggered action [${data.action}] at ${data.time}`);
+        });
+
+        // Administrative Business Logics
+        function dispatchBroadcast() {
+            const title = document.getElementById('push-title').value.trim();
+            const msg = document.getElementById('push-msg').value.trim();
+            const emoji = document.getElementById('push-emoji').value;
+
+            if(!title || !msg) {
+                alert("Bhai, Title aur Message dono likhna zaroori hai! 📝");
+                return;
+            }
+
+            db.ref('broadcast').set({
+                title: title,
+                message: msg,
+                moodEmoji: emoji
+            }).then(() => {
+                alert("Sana's Hub successfully updated in real-time! 🚀");
+            }).catch(err => {
+                alert("Error sending packet data structure: " + err.message);
+            });
+        }
+
+        function logEvent(text) {
+            const entry = document.createElement('div');
+            entry.className = "text-pink-300";
+            entry.innerHTML = `<span class="text-slate-500">[${new Date().toLocaleTimeString()}]</span> ${text}`;
+            logTerminal.appendChild(entry);
+            logTerminal.scrollTop = logTerminal.scrollHeight; // Auto-scroll to latest updates
+        }
+
+        function clearLogs() {
+            db.ref('events').remove();
+            logTerminal.innerHTML = '<div class="text-slate-500">// Realtime tracking database cleared out.</div>';
+        }
+    </script>
+</body>
+</html>

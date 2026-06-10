@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sana's Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- FIREBASE APP & DATABASE INTEGRATION -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #ff4e50, #f9d423);
+            transition: background 0.5s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+        .shake-error {
+            animation: shake 0.4s ease-in-out;
+            border-color: rgba(239, 68, 68, 0.8) !important;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+        }
+
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+        .shimmer::after {
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(90deg, rgba(255,255,255, 0) 0%, rgba(255,255,255, 0.2) 20%, rgba(255,255,255, 0.5) 60%, rgba(255,255,255, 0) 100%);
+            animation: shimmer 1.5s infinite;
+            content: '';
+        }
+
+        /* Floating Heart Anim Layer */
+        .heart-particle {
+            position: fixed;
+            pointer-events: none;
+            font-size: 24px;
+            animation: floatUp 1.5s ease-out forwards;
+            z-index: 100;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(0.5); }
+            100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+        }
+
+        ::-webkit-scrollbar { display: none; }
+        
+        .page-section { display: none; min-height: calc(100vh - 85px); }
+        .page-section.active { display: block; }
+        canvas { touch-action: none; }
+    </style>
+</head>
+<body class="text-white min-h-screen">
+
+    <!-- Live Reaction Floating Engine Container -->
+    <div id="reaction-btn" class="hidden fixed bottom-24 right-5 w-14 h-14 bg-pink-500 rounded-full flex items-center justify-center shadow-lg shadow-pink-500/50 z-50 transition-transform active:scale-75 text-2xl cursor-pointer select-none border-2 border-white/20 animate-pulse">
+        💖
+    </div>
+
+    <div id="lock-screen" class="fixed inset-0 z-50 flex flex-col justify-between p-8 bg-slate-950/95 backdrop-blur-2xl transition-all duration-700 ease-in-out">
+        <div class="text-center mt-12">
+            <div class="inline-flex p-4 rounded-full bg-pink-500/10 text-pink-500 mb-4 animate-bounce">
+                <i class="fa-solid var(--lock-icon, fa-lock) text-3xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold tracking-wide">Sana's Personal Vault</h1>
+            <p class="text-xs text-gray-400 mt-2">Enter Secret Token Access Key</p>
+        </div>
+
+        <div class="flex justify-center items-center gap-4 my-6">
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-gray-500 transition-all"></span>
+        </div>
+
+        <div id="keypad" class="grid grid-cols-3 gap-4 max-w-sm mx-auto mb-8 w-full px-4"></div>
+    </div>
+
+    <main id="app-content" class="hidden opacity-0 p-4 pb-24 transition-opacity duration-700 max-w-md mx-auto">
+        
+        <section id="section-home" class="page-section active space-y-6">
+            
+            <div id="broadcast-card" class="glass rounded-3xl p-6 relative overflow-hidden shadow-xl border border-white/20">
+                <div id="broadcast-skeleton" class="space-y-3 relative overflow-hidden">
+                    <div class="h-4 bg-white/10 rounded w-1/3 shimmer relative overflow-hidden"></div>
+                    <div class="h-6 bg-white/20 rounded w-3/4 shimmer relative overflow-hidden"></div>
+                    <div class="h-4 bg-white/10 rounded w-full shimmer relative overflow-hidden"></div>
+                    <div class="h-4 bg-white/10 rounded w-5/6 shimmer relative overflow-hidden"></div>
+                </div>
+
+                <div id="broadcast-data" class="hidden space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs uppercase font-bold tracking-widest text-pink-200 flex items-center gap-1.5">
+                            <span class="flex h-2 w-2 relative">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-2 w-2 bg-pink-500"></span>
+                            </span>
+                            Ahemad's Live Broadcast
+                        </span>
+                        <span id="broadcast-mood" class="text-2xl drop-shadow-md"></span>
+                    </div>
+                    <h2 id="broadcast-title" class="text-xl font-bold text-white leading-tight"></h2>
+                    <p id="broadcast-message" class="text-sm text-white/90 font-light"></p>
+                </div>
+            </div>
+
+            <div class="text-center py-4">
+                <h1 class="text-3xl font-bold tracking-tight">Hello Sana ❤️</h1>
+                <p class="text-sm opacity-80 mt-1">Welcome to your ultimate comfort space.</p>
+            </div>
+
+            <div class="glass rounded-3xl p-6 shadow-xl space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-semibold tracking-wide flex items-center gap-2">
+                        <i class="fa-solid fa-heart-crack text-pink-300"></i> Forgive Meter
+                    </h3>
+                    <span id="meter-percentage" class="text-sm font-bold bg-white/20 px-2.5 py-0.5 rounded-full">50%</span>
+                </div>
+                
+                <input type="range" id="forgive-slider" min="0" max="100" value="50" 
+                       class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer accent-white transition-all">
+                
+                <div class="flex justify-between text-xs font-medium opacity-80">
+                    <span class="flex items-center gap-1">🤬 Furious</span>
+                    <span class="flex items-center gap-1">Forgiven 🥰</span>
+                </div>
+                <p id="meter-status" class="text-xs text-center text-white/90 italic pt-2"></p>
+            </div>
+
+        </section>
+
+        <section id="section-vent" class="page-section space-y-4">
+            <div class="glass rounded-3xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-green-500/20 text-green-300 rounded-2xl">
+                        <i class="fa-solid fa-comment-heart text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold">Direct to Heart</h2>
+                        <p class="text-xs opacity-70">Vent out or drop your direct demands</p>
+                    </div>
+                </div>
+
+                <textarea id="vent-textarea" rows="6" 
+                          class="w-full bg-black/20 focus:bg-black/30 text-white rounded-2xl p-4 border border-white/10 focus:border-white/40 focus:outline-none transition-all placeholder:text-white/40 text-sm resize-none"
+                          placeholder="Type out absolutely anything... complain, demand gifts, or express your thoughts instantly."></textarea>
+
+                <button id="btn-send-whatsapp" 
+                        class="w-full bg-emerald-500 active:bg-emerald-600 font-semibold py-4 px-6 rounded-2xl shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 transform active:scale-95 transition-all text-sm">
+                    <i class="fa-brands fa-whatsapp text-lg"></i>
+                    Send Straight to Ahemad
+                </button>
+            </div>
+        </section>
+
+        <section id="section-games" class="page-section space-y-6">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold">Surprise Me Arcade</h2>
+                <p class="text-xs opacity-70 mt-1">Scratch with your finger to reveal your reward</p>
+            </div>
+
+            <div class="space-y-6 flex flex-col items-center">
+                <div class="relative w-72 h-40 bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center select-none">
+                    <div class="text-center p-4">
+                        <span class="text-3xl">🍕🛍️</span>
+                        <h4 class="text-lg font-bold text-pink-300 mt-2">A Romantic Dinner & Shopping Trip!</h4>
+                    </div>
+                    <canvas id="scratch-1" class="absolute top-0 left-0 w-full h-full rounded-2xl"></canvas>
+                </div>
+
+                <div class="relative w-72 h-40 bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center select-none">
+                    <div class="text-center p-4">
+                        <span class="text-3xl">🤗✨</span>
+                        <h4 class="text-lg font-bold text-pink-300 mt-2">A Super Long, Warm Tight Hug!</h4>
+                    </div>
+                    <canvas id="scratch-2" class="absolute top-0 left-0 w-full h-full rounded-2xl"></canvas>
+                </div>
+
+                <div class="relative w-72 h-40 bg-zinc-900 rounded-2xl overflow-hidden shadow-2xl border border-white/10 flex items-center justify-center select-none">
+                    <div class="text-center p-4">
+                        <span class="text-3xl">🍦🎬</span>
+                        <h4 class="text-lg font-bold text-pink-300 mt-2">Late Night Movie & Ice Cream Date!</h4>
+                    </div>
+                    <canvas id="scratch-3" class="absolute top-0 left-0 w-full h-full rounded-2xl"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <nav id="bottom-nav" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 w-[90%] max-w-md h-16 glass rounded-2xl flex justify-around items-center px-4 shadow-2xl border border-white/20 z-40 transition-all duration-500">
+        <button onclick="switchTab('home')" id="nav-home" class="flex flex-col items-center justify-center text-pink-200 transition-transform active:scale-90 w-12 h-12 rounded-xl">
+            <i class="fa-solid fa-house-heart text-xl"></i>
+            <span class="text-[10px] font-medium mt-0.5">Home</span>
+        </button>
+        <button onclick="switchTab('vent')" id="nav-vent" class="flex flex-col items-center justify-center text-white/60 transition-transform active:scale-90 w-12 h-12 rounded-xl">
+            <i class="fa-solid fa-heart-bubble text-xl"></i>
+            <span class="text-[10px] font-medium mt-0.5">Vent</span>
+        </button>
+        <button onclick="switchTab('games')" id="nav-games" class="flex flex-col items-center justify-center text-white/60 transition-transform active:scale-90 w-12 h-12 rounded-xl">
+            <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
+            <span class="text-[10px] font-medium mt-0.5">Arcade</span>
+        </button>
+    </nav>
+
+    <script>
+        // ==========================================
+        // REALTIME FIREBASE PRODUCTION CONNECTIVITY PROFILES
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyD40XJfbJuUymNsrFw-mPcC63ES",
+            authDomain: "raza-new-first-multi.firebaseapp.com",
+            databaseURL: "https://raza-new-first-multi-default-rtdb.firebaseio.com/",
+            projectId: "raza-new-first-multi",
+            storageBucket: "raza-new-first-multi.appspot.com",
+            messagingSenderId: "941872189498",
+            appId: "1:941872189498:web:bc04b2ffe6ce0a660a95cc",
+            measurementId: "G-D14M17K8ES"
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // Global Configurations
+        const MASTER_PIN = "270519962006";
+        let currentPinInput = "";
+
+        // ==========================================
+        // PIN ACCESS SYSTEM
+        // ==========================================
+        function initKeypad() {
+            const keypad = document.getElementById('keypad');
+            const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Clear', '0', 'Delete'];
+            
+            keys.forEach(key => {
+                const button = document.createElement('button');
+                button.className = "glass font-semibold py-4 rounded-2xl text-xl transition-all active:bg-white/30 active:scale-95 flex items-center justify-center select-none";
+                
+                if (key === 'Clear') {
+                    button.innerHTML = `<span class="text-xs tracking-wide uppercase">Reset</span>`;
+                    button.onclick = () => handleKeyInput('clear');
+                } else if (key === 'Delete') {
+                    button.innerHTML = `<i class="fa-solid fa-delete-left"></i>`;
+                    button.onclick = () => handleKeyInput('delete');
+                } else {
+                    button.innerText = key;
+                    button.onclick = () => handleKeyInput(key);
+                }
+                keypad.appendChild(button);
+            });
+        }
+
+        function triggerHaptic() {
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        }
+
+        function updatePinDots() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((dot, index) => {
+                if (index < currentPinInput.length) {
+                    dot.classList.add('bg-pink-500', 'border-pink-500', 'scale-110');
+                } else {
+                    dot.classList.remove('bg-pink-500', 'border-pink-500', 'scale-110');
+                }
+            });
+        }
+
+        function handleKeyInput(action) {
+            if (action === 'clear') currentPinInput = "";
+            else if (action === 'delete') currentPinInput = currentPinInput.slice(0, -1);
+            else {
+                if (currentPinInput.length < 12) currentPinInput += action;
+            }
+            updatePinDots();
+
+            if (currentPinInput.length === 12) {
+                if (currentPinInput === MASTER_PIN) unlockApp();
+                else failPinTransition();
+            }
+        }
+
+        function failPinTransition() {
+            triggerHaptic();
+            const lockScreen = document.getElementById('lock-screen');
+            lockScreen.classList.add('shake-error');
+            setTimeout(() => {
+                lockScreen.classList.remove('shake-error');
+                currentPinInput = "";
+                updatePinDots();
+            }, 500);
+        }
+
+        function unlockApp() {
+            const lockScreen = document.getElementById('lock-screen');
+            const appContent = document.getElementById('app-content');
+            const bottomNav = document.getElementById('bottom-nav');
+            const reactionBtn = document.getElementById('reaction-btn');
+
+            lockScreen.classList.add('opacity-0', 'pointer-events-none');
+            appContent.classList.remove('hidden');
+            bottomNav.classList.remove('hidden');
+            reactionBtn.classList.remove('hidden');
+            
+            // Sync Session login status tracking metrics to administrative database layer
+            try { db.ref('status/lastLogin').set(new Date().toLocaleString()); } catch(e){}
+            
+            setTimeout(() => {
+                lockScreen.remove();
+                appContent.classList.add('opacity-100');
+                updateColorTheme(50);
+                startFirebaseLiveSync();
+                initScratchCards();
+            }, 600);
+        }
+
+        // ==========================================
+        // REAL-TIME BROADCAST SYNC (FIREBASE)
+        // ==========================================
+        function startFirebaseLiveSync() {
+            const skeleton = document.getElementById('broadcast-skeleton');
+            const dataView = document.getElementById('broadcast-data');
+            
+            try {
+                db.ref('broadcast').on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if(data) {
+                        document.getElementById('broadcast-title').innerText = data.title || "Distance Means Nothing 🤍";
+                        document.getElementById('broadcast-message').innerText = data.message || "Thinking of you every single second of the day.";
+                        document.getElementById('broadcast-mood').innerText = data.moodEmoji || "❤️";
+                    }
+                    skeleton.classList.add('hidden');
+                    dataView.classList.remove('hidden');
+                });
+            } catch (error) {
+                console.log("Database fetch fault routing parameters.", error);
+                document.getElementById('broadcast-title').innerText = "Distance Means Nothing 🤍";
+                document.getElementById('broadcast-message').innerText = "No matter how busy today gets, you remain my priority #1. I love you, Sana!";
+                document.getElementById('broadcast-mood').innerText = "❤️";
+                skeleton.classList.add('hidden');
+                dataView.classList.remove('hidden');
+            }
+        }
+
+        // ==========================================
+        // FORGIVE METER & LIVE SYNC TO DASHBOARD
+        // ==========================================
+        const slider = document.getElementById('forgive-slider');
+        slider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            document.getElementById('meter-percentage').innerText = `${val}%`;
+            updateColorTheme(val);
+        });
+
+        slider.addEventListener('change', (e) => {
+            try {
+                db.ref('status/forgiveMeter').set(e.target.value);
+            } catch(error){}
+        });
+
+        function updateColorTheme(value) {
+            const body = document.body;
+            const statusText = document.getElementById('meter-status');
+            
+            if (value < 30) {
+                body.style.background = "linear-gradient(135deg, #b91c1c, #ea580c)";
+                statusText.innerText = "Warning: Approaching absolute danger zone! Emergency rescue needed! 🌋";
+            } else if (value >= 30 && value < 75) {
+                body.style.background = "linear-gradient(135deg, #ea580c, #d946ef)";
+                statusText.innerText = "Melt down initialized... progress looks promising! 🍊🔮";
+            } else {
+                body.style.background = "linear-gradient(135deg, #ec4899, #8b5cf6)";
+                statusText.innerText = "Absolute forgiveness achieved! Safe zone locked in! I love you! 💕🌟";
+            }
+        }
+
+        // ==========================================
+        // FLOATING EMOJI REACTION (LONG PRESS / CLICK)
+        // ==========================================
+        const reactionBtn = document.getElementById('reaction-btn');
+        let pressTimer;
+
+        function createHeartParticle() {
+            const heart = document.createElement('div');
+            heart.innerText = ['💖', '💕', '🥰', '😘'][Math.floor(Math.random() * 4)];
+            heart.className = 'heart-particle';
+            
+            const rect = reactionBtn.getBoundingClientRect();
+            heart.style.left = (rect.left + (Math.random() * 40 - 20)) + 'px';
+            heart.style.top = rect.top + 'px';
+            
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 1500);
+            triggerHaptic();
+
+            try {
+                db.ref('events/reactions').push({
+                    type: 'heart',
+                    time: new Date().toLocaleTimeString()
+                });
+            } catch(e) {}
+        }
+
+        reactionBtn.addEventListener('mousedown', () => {
+            createHeartParticle();
+            pressTimer = setInterval(createHeartParticle, 300);
+        });
+        reactionBtn.addEventListener('mouseup', () => clearInterval(pressTimer));
+        reactionBtn.addEventListener('mouseleave', () => clearInterval(pressTimer));
+        
+        reactionBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            createHeartParticle();
+            pressTimer = setInterval(createHeartParticle, 300);
+        });
+        reactionBtn.addEventListener('touchend', () => clearInterval(pressTimer));
+
+        // ==========================================
+        // WHATSAPP VENT
+        // ==========================================
+        document.getElementById('btn-send-whatsapp').addEventListener('click', () => {
+            const textValue = document.getElementById('vent-textarea').value.trim();
+            if(!textValue) { alert("Please type a message before sending! 😊"); return; }
+            
+            try { db.ref('events/clicks').push({ action: 'WhatsApp Vent Sent', time: new Date().toLocaleString()}); } catch(e){}
+
+            const encodedText = encodeURIComponent(textValue);
+            window.location.href = `https://wa.me/9421726378?text=${encodedText}`;
+        });
+
+        // ==========================================
+        // SCRATCH CARDS
+        // ==========================================
+        function initScratchCards() {
+            const cards = ['scratch-1', 'scratch-2', 'scratch-3'];
+            cards.forEach(id => {
+                const canvas = document.getElementById(id);
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                
+                const width = 288; 
+                const height = 160; 
+                canvas.width = width;
+                canvas.height = height;
+
+                ctx.fillStyle = '#4b5563'; 
+                ctx.fillRect(0, 0, width, height);
+                
+                ctx.font = "bold 16px Poppins, sans-serif";
+                ctx.fillStyle = "#ffffff";
+                ctx.textAlign = "center";
+                ctx.fillText("✨ Scratch with Finger ✨", width / 2, height / 2 + 5);
+
+                let isDrawing = false;
+                let scratchedOnce = false;
+
+                function scratch(e) {
+                    if (!isDrawing) return;
+                    
+                    if(!scratchedOnce) {
+                        scratchedOnce = true;
+                        try { db.ref('events/clicks').push({ action: `Started scratching ${id}`, time: new Date().toLocaleTimeString()}); } catch(err){}
+                    }
+
+                    const rect = canvas.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                    
+                    const x = (clientX - rect.left) * (canvas.width / rect.width);
+                    const y = (clientY - rect.top) * (canvas.height / rect.height);
+
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 20, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                canvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); });
+                canvas.addEventListener('touchmove', (e) => { scratch(e); e.preventDefault(); });
+                canvas.addEventListener('touchend', () => isDrawing = false);
+                canvas.addEventListener('mousedown', (e) => { isDrawing = true; scratch(e); });
+                canvas.addEventListener('mousemove', scratch);
+                canvas.addEventListener('mouseup', () => isDrawing = false);
+            });
+        }
+
+        // ==========================================
+        // NAVIGATION TABS
+        // ==========================================
+        function switchTab(targetTab) {
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(`section-${targetTab}`).classList.add('active');
+
+            const tabs = ['home', 'vent', 'games'];
+            tabs.forEach(tab => {
+                const btn = document.getElementById(`nav-${tab}`);
+                if (tab === targetTab) {
+                    btn.classList.add('text-pink-200', 'scale-110');
+                    btn.classList.remove('text-white/60');
+                } else {
+                    btn.classList.remove('text-pink-200', 'scale-110');
+                    btn.classList.add('text-white/60');
+                }
+            });
+        }
+
+        window.onload = () => { initKeypad(); };
+    </script>
+</body>
+</html>

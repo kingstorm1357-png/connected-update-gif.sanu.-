@@ -103,21 +103,50 @@
             logEvent(`SYSTEM: Forgive Meter checked/shifted to ${val}%`);
         });
 
+                // ==========================================
+        // PREMIUM BEAUTIFIED HINDI LOGS ENGINE ✨
+        // ==========================================
         db.ref('status/lastLogin').on('value', (snap) => {
             if(snap.val()) {
                 document.getElementById('live-login-time').innerText = snap.val();
-                logEvent(`EVENT: Sana logged into the system portal successfully.`);
+                logEvent(`<span class="text-sky-400 font-bold">🔐 [VAULT ACCESS]</span> → <span class="text-white font-medium">Sana ne password daal kar website open kar li hai!</span> 🚀`);
             }
         });
 
         db.ref('events/reactions').on('child_added', (snap) => {
             const data = snap.val();
-            logEvent(`REACTION: Sent live micro-love bursts [${data.type || 'heart'}] at ${data.time}`);
+            logEvent(`<span class="text-pink-400 font-bold">💖 [LOVE BURST]</span> → <span class="text-pink-200 italic font-semibold">Sana aapko dher saare dil bhej rahi hai! (Clicked Floating Heart)</span> 🥰`);
         });
 
         db.ref('events/clicks').on('child_added', (snap) => {
             const data = snap.val();
-            logEvent(`CLICK-EVENT: Triggered action [${data.action}] at ${data.time}`);
+            let actionText = data.action;
+            let icon = "🎯";
+            let colorClass = "text-amber-400";
+            
+            if(actionText.includes("Started scratching scratch-1")) {
+                actionText = "Arcade me pehla card saaf kiya: <span class="text-emerald-300 font-semibold">Dinner & Shopping Date! 🍕🛍️</span>";
+                icon = "🎁 [REWARD UNLOCKED]";
+                colorClass = "text-emerald-400";
+            } else if(actionText.includes("Started scratching scratch-2")) {
+                actionText = "Arcade me dusra card saaf kiya: <span class="text-rose-300 font-semibold">Warm Tight Hug! 🤗✨</span>";
+                icon = "🎁 [REWARD UNLOCKED]";
+                colorClass = "text-rose-400";
+            } else if(actionText.includes("Started scratching scratch-3")) {
+                actionText = "Arcade me tisra card saaf kiya: <span class="text-cyan-300 font-semibold">Movie & Ice Cream Date! 🍦🎬</span>";
+                icon = "🎁 [REWARD UNLOCKED]";
+                colorClass = "text-cyan-400";
+            } else if(actionText.includes("WhatsApp Vent Sent")) {
+                actionText = "Direct to Heart se <span class="text-teal-300 font-bold">WhatsApp par message send kiya hai!</span>";
+                icon = "💬 [MESSAGE VENT]";
+                colorClass = "text-teal-400";
+            } else {
+                actionText = `Sana ne click kiya: ${actionText}`;
+                icon = "⚡ [CLICK EVENT]";
+                colorClass = "text-yellow-400";
+            }
+            
+            logEvent(`<span class="${colorClass} font-bold">${icon}</span> → <span class="text-slate-300">${actionText}</span>`);
         });
 
         // Administrative Business Logics

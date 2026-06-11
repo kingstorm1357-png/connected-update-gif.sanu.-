@@ -3,76 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ahemad's Control Panel</title>
+    <title>Ahemad's Premium Control Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-</head>
-<body class="bg-slate-900 text-white font-sans p-4 md:p-8">
-    <div class="max-w-4xl mx-auto space-y-6">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
         
-        <header class="flex justify-between items-center border-b border-slate-700 pb-4">
-            <h1 class="text-2xl md:text-3xl font-bold text-pink-500">Sana's Hub - Control Room 📡</h1>
-            <div id="connection-status" class="bg-emerald-500/20 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/30">
-                Live Connected
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: radial-gradient(circle at top right, #0f172a, #020617);
+            min-height: 100vh;
+        }
+        .mono-text {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .premium-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        .custom-glow:focus {
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.3);
+            border-color: rgba(236, 72, 153, 0.5);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-slate-100 p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto space-y-6">
+        
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center p-6 premium-card rounded-3xl gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gradient-to-tr from-pink-500 to-violet-600 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg shadow-pink-500/20">
+                    <i class="fa-solid fa-user-gear"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">HQ Command Center v2.5</h1>
+                    <p class="text-xs text-pink-400 font-medium tracking-wider uppercase flex items-center gap-1.5 mt-0.5">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> Multi-App Active Sync Terminal
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 bg-black/40 px-4 py-2.5 rounded-2xl border border-white/5">
+                <i class="fa-solid fa-clock text-slate-400"></i>
+                <div class="text-right">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sana's Last Unlock</p>
+                    <p id="live-login-time" class="text-xs font-bold text-emerald-400 mono-text">Waiting Sync...</p>
+                </div>
             </div>
         </header>
 
-        <!-- Live Vitals Monitoring Row -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
-                <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider">Current Forgive Meter Status</h3>
-                <div class="flex items-center gap-4 mt-2">
-                    <span id="live-meter-val" class="text-4xl font-extrabold text-pink-400">--%</span>
-                    <p id="live-meter-desc" class="text-xs text-gray-400 italic">Waiting for real-time tracking packet...</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <div class="premium-card p-6 rounded-3xl flex flex-col justify-between space-y-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Live Connection Status</p>
+                        <h3 class="text-xl font-bold mt-1 text-white">Database Relay</h3>
+                    </div>
+                    <span class="p-2.5 bg-sky-500/10 text-sky-400 rounded-xl"><i class="fa-solid fa-satellite-dish text-lg"></i></span>
+                </div>
+                <div class="bg-black/30 p-3 rounded-xl border border-white/5 flex items-center justify-between">
+                    <span class="text-xs text-slate-300">Ping Interval</span>
+                    <span class="text-xs font-bold text-sky-400 mono-text">Realtime (0ms)</span>
                 </div>
             </div>
-            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
-                <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider">Last App Unlock Time</h3>
-                <div class="text-xl font-semibold text-sky-400 mt-2" id="live-login-time">
-                    Not Opened Yet Today
+
+            <div class="premium-card p-6 rounded-3xl flex flex-col justify-between space-y-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Forgiveness State</p>
+                        <h3 id="meter-display-val" class="text-2xl font-black mt-1 text-pink-400 mono-text">--%</h3>
+                    </div>
+                    <span class="p-2.5 bg-pink-500/10 text-pink-400 rounded-xl"><i class="fa-solid fa-heart-pulse text-lg"></i></span>
+                </div>
+                <div id="meter-status-box" class="text-xs p-2.5 rounded-xl bg-black/20 text-slate-400 border border-white/5 truncate">
+                    No sync data fetched yet.
                 </div>
             </div>
+
+            <div class="premium-card p-6 rounded-3xl flex flex-col justify-between space-y-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">System Diagnostic</p>
+                        <h3 class="text-xl font-bold mt-1 text-white">Security Integrity</h3>
+                    </div>
+                    <span class="p-2.5 bg-violet-500/10 text-violet-400 rounded-xl"><i class="fa-solid fa-shield-halved text-lg"></i></span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="alert('All system protocols bypassed. Anonymous token allowed.')" class="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 font-medium py-1.5 px-3 rounded-xl text-xs transition-all border border-white/5">
+                        Test Sync
+                    </button>
+                    <button onclick="location.reload()" class="bg-white/5 hover:bg-white/10 text-slate-300 p-1.5 rounded-xl text-xs transition-all border border-white/5">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Broadcast Control Panel Card -->
-        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 space-y-4">
-            <h2 class="text-lg font-bold text-gray-200">Push Live Content Broadcast Message</h2>
-            <div class="grid grid-cols-1 gap-3">
-                <input id="push-title" type="text" placeholder="Enter Catchy Title (e.g., Distance Means Nothing 🤍)" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:outline-none focus:border-pink-500 text-sm">
-                <textarea id="push-msg" rows="3" placeholder="Type romantic message context or status updates here..." class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl focus:outline-none focus:border-pink-500 text-sm resize-none"></textarea>
-                
-                <div class="flex gap-2 items-center">
-                    <span class="text-sm text-gray-400">Select Mood Emoji:</span>
-                    <select id="push-emoji" class="bg-slate-900 border border-slate-700 rounded-xl p-2 text-lg focus:outline-none">
-                        <option value="❤️">❤️</option>
-                        <option value="🥺">🥺</option>
-                        <option value="🥰">🥰</option>
-                        <option value="🌹">🌹</option>
-                        <option value="✨">✨</option>
-                    </select>
+        <section class="premium-card p-6 rounded-3xl space-y-4">
+            <h2 class="text-lg font-bold flex items-center gap-2 text-white">
+                <i class="fa-solid fa-paper-plane text-pink-500 text-sm"></i> Push Live Content Broadcast Message
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="space-y-1.5">
+                    <label class="text-xs text-slate-400 font-medium tracking-wide">Headline Title</label>
+                    <input type="text" id="bc-title" placeholder="e.g., Missing You Extensively..." class="w-full bg-black/40 text-sm border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none custom-glow transition-all">
+                </div>
+                <div class="space-y-1.5 md:col-span-2">
+                    <label class="text-xs text-slate-400 font-medium tracking-wide">Type Romantic Message / Info Update</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="bc-msg" placeholder="Write anything beautiful here..." class="w-full bg-black/40 text-sm border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none custom-glow transition-all">
+                        <select id="bc-mood" class="bg-black/40 text-sm border border-white/10 rounded-xl px-3 py-3 text-white focus:outline-none custom-glow transition-all cursor-pointer">
+                            <option value="💖">💖 Love</option>
+                            <option value="🥺">🥺 Soft</option>
+                            <option value="🌹">🌹 Rose</option>
+                            <option value="👑">👑 Queen</option>
+                            <option value="✨">✨ Magic</option>
+                        </select>
+                        <button onclick="dispatchBroadcast()" class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 font-semibold px-6 rounded-xl text-sm transition-all shadow-lg shadow-pink-500/20 active:scale-95 whitespace-nowrap">
+                            Update App Instantly
+                        </button>
+                    </div>
                 </div>
             </div>
-            <button onclick="dispatchBroadcast()" class="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 px-6 py-3 rounded-xl text-sm font-bold shadow-lg transition-all transform active:scale-95">
-                Update Sana's App Instantly
-            </button>
-        </div>
+        </section>
 
-        <!-- Activity Logger Tracker Streams -->
-        <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-gray-200">Real-time Interface Clicks & Reactions Log</h2>
-                <button onclick="clearLogs()" class="text-xs text-rose-400 hover:underline">Clear Stream</button>
+        <section class="premium-card p-6 rounded-3xl space-y-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-pink-500 animate-ping"></div>
+                    <h2 class="text-lg font-bold text-white">Sana's Real-Time Activity Interface Logs</h2>
+                </div>
+                <button onclick="clearStreamEngine()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold px-4 py-2 rounded-xl transition-all active:scale-95 flex items-center gap-2">
+                    <i class="fa-solid fa-trash-can"></i> Clear Stream Terminal
+                </button>
             </div>
-            <div class="bg-slate-900 rounded-xl p-4 h-60 overflow-y-auto border border-slate-700 text-xs font-mono space-y-1.5" id="log-terminal">
-                <div class="text-slate-500">// System tracking engine initialized. Listening for remote triggers...</div>
+            
+            <div id="log-terminal" class="bg-black/50 border border-white/10 rounded-2xl p-4 h-72 overflow-y-auto mono-text text-xs space-y-2.5 shadow-inner">
+                <div class="text-slate-500 italic flex items-center gap-2"><i class="fa-solid fa-circle-notch animate-spin"></i> Initializing core logs listener engine... standing by for live triggers...</div>
             </div>
-        </div>
+        </section>
 
     </div>
 
     <script>
-        // Core Firebase Synchronization Keys matching target endpoints
         const firebaseConfig = {
             apiKey: "AIzaSyD40XJfbJuUymNsrFw-mPcC63ES",
             authDomain: "raza-new-first-multi.firebaseapp.com",
@@ -84,38 +176,79 @@
             measurementId: "G-D14M17K8ES"
         };
         
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const db = firebase.database();
 
-        const logTerminal = document.getElementById('log-terminal');
+        let isTerminalEmpty = true;
 
-        // Realtime Event Stream Handlers: Core Listeners
-        db.ref('status/forgiveMeter').on('value', (snap) => {
-            const val = snap.val() || 50;
-            document.getElementById('live-meter-val').innerText = val + "%";
-            
-            let desc = "";
-            if(val < 30) desc = "Angry Alert Zone! 🌋";
-            else if(val >= 30 && val < 75) desc = "Heart melting down smoothly... 🍊";
-            else desc = "Absolute safe forgiveness achieved! 💖";
-            document.getElementById('live-meter-desc').innerText = desc;
-            
-            logEvent(`SYSTEM: Forgive Meter checked/shifted to ${val}%`);
-        });
+        // HIGH TECH TIMESTAMPED LOGGER
+        function logEvent(messageHtml, customTime = null) {
+            const terminal = document.getElementById('log-terminal');
+            if (isTerminalEmpty) {
+                terminal.innerHTML = '';
+                isTerminalEmpty = false;
+            }
 
-                        // ==========================================
-        // PREMIUM BEAUTIFIED HINDI LOGS ENGINE ✨
+            // Agar custom snapshot time nahi hai, toh live counter time banayega
+            let timestamp = "";
+            if(customTime) {
+                timestamp = customTime;
+            } else {
+                const now = new Date();
+                let hours = now.getHours();
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; 
+                timestamp = `${hours}:${minutes}:${seconds} ${ampm}`;
+            }
+
+            const newLogLine = document.createElement('div');
+            newLogLine.className = "p-2 bg-white/[0.02] border-l-2 border-pink-500/40 rounded-r-lg hover:bg-white/[0.04] transition-all flex items-start gap-2 animate-fade-in";
+            newLogLine.innerHTML = `<span class="text-slate-500 font-bold shrink-0">[${timestamp}]</span> ${messageHtml}`;
+            
+            terminal.appendChild(newLogLine);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // ==========================================
+        // PREMIUM BEAUTIFIED HINDI LOGS ENGINE ✨ (WITH TIMESTAMP FIX)
         // ==========================================
         db.ref('status/lastLogin').on('value', (snap) => {
             if(snap.val()) {
                 document.getElementById('live-login-time').innerText = snap.val();
-                logEvent('<span class="text-sky-400 font-bold">🔐 [VAULT ACCESS]</span> → <span class="text-white font-medium">Sana ne password daal kar website open kar li hai!</span> 🚀');
+                // Last login me data ke andar hi time rehta hai isliye use nikal rahe hain
+                let extTime = snap.val().split(', ')[1] || null;
+                logEvent('<span class="text-sky-400 font-bold">🔐 [VAULT ACCESS]</span> → <span class="text-white font-medium">Sana ne password daal kar website open kar li hai!</span> 🚀', extTime);
+            }
+        });
+
+        db.ref('status/forgiveMeter').on('value', (snap) => {
+            if(snap.val() !== null) {
+                const val = snap.val();
+                document.getElementById('meter-display-val').innerText = val + "%";
+                const statusBox = document.getElementById('meter-status-box');
+                
+                if (val < 30) {
+                    statusBox.className = "text-xs p-2.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold";
+                    statusBox.innerText = "Warning: Approaching danger zone! 🌋";
+                } else if (val >= 30 && val < 75) {
+                    statusBox.className = "text-xs p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold";
+                    statusBox.innerText = "Melt down initialized... progress looks promising! 🍊";
+                } else {
+                    statusBox.className = "text-xs p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold";
+                    statusBox.innerText = "Absolute forgiveness achieved! Safe zone! 🌟";
+                }
             }
         });
 
         db.ref('events/reactions').on('child_added', (snap) => {
-            if(snap.val()) {
-                logEvent('<span class="text-pink-400 font-bold">💖 [LOVE BURST]</span> → <span class="text-pink-200 italic font-semibold">Sana aapko dher saare dil bhej rahi hai! (Clicked Floating Heart)</span> 🥰');
+            const data = snap.val();
+            if(data) {
+                logEvent('<span class="text-pink-400 font-bold">💖 [LOVE BURST]</span> → <span class="text-pink-200 italic font-semibold">Sana aapko dher saare dil bhej rahi hai! (Clicked Floating Heart)</span> 🥰', data.time || null);
             }
         });
 
@@ -126,6 +259,7 @@
             let actionText = data.action || "";
             let icon = "🎯";
             let colorClass = "text-amber-400";
+            let timestamp = data.time || null;
             
             if(actionText.includes("scratch-1")) {
                 actionText = 'Arcade me pehla card saaf kiya: <span class="text-emerald-300 font-semibold">Dinner & Shopping Date! 🍕🛍️</span>';
@@ -149,42 +283,41 @@
                 colorClass = "text-yellow-400";
             }
             
-            logEvent('<span class="' + colorClass + ' font-bold">' + icon + '</span> → <span class="text-slate-300">' + actionText + '</span>');
+            logEvent('<span class="' + colorClass + ' font-bold">' + icon + '</span> → <span class="text-slate-300">' + actionText + '</span>', timestamp);
         });
-        
-        // Administrative Business Logics
-        function dispatchBroadcast() {
-            const title = document.getElementById('push-title').value.trim();
-            const msg = document.getElementById('push-msg').value.trim();
-            const emoji = document.getElementById('push-emoji').value;
 
-            if(!title || !msg) {
-                alert("Bhai, Title aur Message dono likhna zaroori hai! 📝");
+        // DISPATCH BROADCAST SYSTEM
+        function dispatchBroadcast() {
+            const titleInput = document.getElementById('bc-title').value.trim();
+            const msgInput = document.getElementById('bc-msg').value.trim();
+            const moodInput = document.getElementById('bc-mood').value;
+
+            if(!titleInput || !msgInput) {
+                alert("Bhai headline aur message dono daalna zaroori hai! 🛑");
                 return;
             }
 
             db.ref('broadcast').set({
-                title: title,
-                message: msg,
-                moodEmoji: emoji
+                title: titleInput,
+                message: msgInput,
+                moodEmoji: moodInput
             }).then(() => {
-                alert("Sana's Hub successfully updated in real-time! 🚀");
-            }).catch(err => {
-                alert("Error sending packet data structure: " + err.message);
+                alert("Sana ke Hub par content live chala gaya! 🚀🎉");
+                document.getElementById('bc-title').value = "";
+                document.getElementById('bc-msg').value = "";
+            }).catch((err) => {
+                alert("Error pushing data: " + err.message);
             });
         }
 
-        function logEvent(text) {
-            const entry = document.createElement('div');
-            entry.className = "text-pink-300";
-            entry.innerHTML = `<span class="text-slate-500">[${new Date().toLocaleTimeString()}]</span> ${text}`;
-            logTerminal.appendChild(entry);
-            logTerminal.scrollTop = logTerminal.scrollHeight; // Auto-scroll to latest updates
-        }
-
-        function clearLogs() {
-            db.ref('events').remove();
-            logTerminal.innerHTML = '<div class="text-slate-500">// Realtime tracking database cleared out.</div>';
+        // DISMISS STREAM LOGS ENGINE
+        function clearStreamEngine() {
+            if(confirm("Kya aap sach me saare logs terminal mita kar saaf karna chahte hain?")) {
+                db.ref('events/clicks').remove();
+                db.ref('events/reactions').remove();
+                document.getElementById('log-terminal').innerHTML = '<div class="text-slate-500 italic">Terminal cleared. Standing by for new live streams... 🪐</div>';
+                isTerminalEmpty = true;
+            }
         }
     </script>
 </body>

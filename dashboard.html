@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ahemad's Premium Control Center</title>
+    <title>Ahemad's Love Control Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- FIREBASE LEGACY SCRIPTS -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -15,155 +16,196 @@
         
         body {
             font-family: 'Space Grotesk', sans-serif;
-            background: radial-gradient(circle at top right, #0f172a, #020617);
+            background: linear-gradient(135deg, #2a0815, #1a050f, #14000b);
             min-height: 100vh;
         }
         .mono-text {
             font-family: 'JetBrains Mono', monospace;
         }
         .premium-card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 30, 100, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 100, 150, 0.15);
+            box-shadow: 0 10px 40px rgba(236, 72, 153, 0.1);
         }
         .custom-glow:focus {
-            box-shadow: 0 0 15px rgba(236, 72, 153, 0.3);
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.25);
             border-color: rgba(236, 72, 153, 0.5);
         }
-        ::-webkit-scrollbar {
-            width: 6px;
+        
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        ::-webkit-scrollbar-thumb { background: rgba(236, 72, 153, 0.3); border-radius: 10px; }
+
+        /* Shake Animation for Wrong PIN */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
         }
-        ::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.2);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
+        .shake-error {
+            animation: shake 0.4s ease-in-out;
         }
     </style>
 </head>
-<body class="text-slate-100 p-4 md:p-8">
+<body class="text-pink-50 p-4 md:p-8">
 
-    <div class="max-w-5xl mx-auto space-y-6">
+    <!-- COMMANDER LOCK SCREEN -->
+    <div id="lock-screen" class="fixed inset-0 z-50 flex flex-col justify-center items-center bg-[#14000b]/95 backdrop-blur-2xl transition-all duration-700 px-4">
+        <div class="text-center mb-8">
+            <div class="inline-flex p-4 rounded-3xl bg-rose-500/10 text-rose-500 mb-4 shadow-[0_0_20px_rgba(244,63,94,0.2)] border border-rose-500/20">
+                <i class="fa-solid fa-shield-heart text-4xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-100 to-rose-300 bg-clip-text text-transparent">HQ Secure Access</h1>
+            <p class="text-[10px] text-pink-300/70 mt-2 tracking-widest uppercase font-semibold">Enter Commander PIN (4-Digits)</p>
+        </div>
+
+        <div class="flex justify-center items-center gap-5 mb-8">
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-pink-500/50 transition-all duration-300"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-pink-500/50 transition-all duration-300"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-pink-500/50 transition-all duration-300"></span>
+            <span class="pin-dot w-4 h-4 rounded-full border-2 border-pink-500/50 transition-all duration-300"></span>
+        </div>
+
+        <div id="keypad" class="grid grid-cols-3 gap-3 max-w-[280px] w-full mx-auto"></div>
+    </div>
+
+    <!-- MAIN DASHBOARD (HIDDEN INITIALLY) -->
+    <div id="dashboard-content" class="hidden opacity-0 transition-opacity duration-1000 max-w-5xl mx-auto space-y-6">
         
+        <!-- ROMANTIC HEADER -->
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center p-6 premium-card rounded-3xl gap-4">
             <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-gradient-to-tr from-pink-500 to-violet-600 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg shadow-pink-500/20">
-                    <i class="fa-solid fa-user-gear"></i>
+                <div class="w-14 h-14 bg-gradient-to-tr from-pink-500 to-rose-500 rounded-2xl flex items-center justify-center text-white text-2xl shadow-[0_0_20px_rgba(236,72,153,0.4)]">
+                    <i class="fa-solid fa-heart"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">HQ Command Center v2.5</h1>
-                    <p class="text-xs text-pink-400 font-medium tracking-wider uppercase flex items-center gap-1.5 mt-0.5">
-                        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> Multi-App Active Sync Terminal
+                    <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-pink-100 to-rose-300 bg-clip-text text-transparent">Sana's Heartbeat Terminal</h1>
+                    <p class="text-xs text-pink-300 font-medium tracking-wider uppercase flex items-center gap-1.5 mt-1">
+                        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span> Connected to Her Hub
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-3 bg-black/40 px-4 py-2.5 rounded-2xl border border-white/5">
-                <i class="fa-solid fa-clock text-slate-400"></i>
+            <div class="flex items-center gap-3 bg-black/30 px-5 py-3 rounded-2xl border border-pink-500/20">
+                <i class="fa-regular fa-clock text-pink-400"></i>
                 <div class="text-right">
-                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Sana's Last Unlock</p>
-                    <p id="live-login-time" class="text-xs font-bold text-emerald-400 mono-text">Waiting Sync...</p>
+                    <p class="text-[9px] text-pink-300/70 uppercase tracking-widest font-bold">Sana's Last Visit</p>
+                    <p id="live-login-time" class="text-xs font-semibold text-pink-100 mono-text">Waiting Sync...</p>
                 </div>
             </div>
         </header>
 
+        <!-- LOVE METRICS HUB -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <div class="premium-card p-6 rounded-3xl flex flex-col justify-between space-y-4">
+            <div class="premium-card p-6 rounded-3xl flex flex-col justify-between space-y-4 hover:border-pink-500/30 transition-all duration-500">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Live Connection Status</p>
-                        <h3 class="text-xl font-bold mt-1 text-white">Database Relay</h3>
+                        <p class="text-[10px] font-bold text-pink-300/70 uppercase tracking-widest">Network Status</p>
+                        <h3 class="text-lg font-bold mt-1 text-pink-50">Heart Sync</h3>
                     </div>
-                    <span class="p-2.5 bg-sky-500/10 text-sky-400 rounded-xl"><i class="fa-solid fa-satellite-dish text-lg"></i></span>
+                    <span class="text-pink-400 bg-pink-500/10 p-2.5 rounded-xl"><i class="fa-solid fa-wifi text-lg"></i></span>
                 </div>
-                <div class="bg-black/30 p-3 rounded-xl border border-white/5 flex items-center justify-between">
-                    <span class="text-xs text-slate-300">Ping Interval</span>
-                    <span class="text-xs font-bold text-sky-400 mono-text">Realtime (0ms)</span>
+                <div class="bg-black/30 p-3 rounded-xl border border-pink-500/10 flex items-center justify-between">
+                    <span class="text-xs text-pink-200">Connection</span>
+                    <span class="text-xs font-semibold text-emerald-400 mono-text">Perfectly Linked</span>
                 </div>
             </div>
 
-            <div class="premium-card p-6 rounded-3xl flex flex-col justify-between space-y-4">
+            <div class="premium-card p-6 rounded-3xl flex flex-col justify-between space-y-4 hover:border-pink-500/30 transition-all duration-500">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Forgiveness State</p>
-                        <h3 id="meter-display-val" class="text-2xl font-black mt-1 text-pink-400 mono-text">--%</h3>
+                        <p class="text-[10px] font-bold text-pink-300/70 uppercase tracking-widest">Forgiveness Meter</p>
+                        <h3 id="meter-display-val" class="text-2xl font-bold mt-1 text-rose-400 mono-text">--%</h3>
                     </div>
-                    <span class="p-2.5 bg-pink-500/10 text-pink-400 rounded-xl"><i class="fa-solid fa-heart-pulse text-lg"></i></span>
+                    <span class="text-rose-400 bg-rose-500/10 p-2.5 rounded-xl"><i class="fa-solid fa-heart-crack text-lg"></i></span>
                 </div>
-                <div id="meter-status-box" class="text-xs p-2.5 rounded-xl bg-black/20 text-slate-400 border border-white/5 truncate">
-                    No sync data fetched yet.
+                <div id="meter-status-box" class="text-[11px] p-3 rounded-xl bg-black/30 text-pink-300 border border-pink-500/10 truncate">
+                    Waiting for her mood...
                 </div>
             </div>
 
-            <div class="premium-card p-6 rounded-3xl flex flex-col justify-between space-y-4">
+            <div class="premium-card p-6 rounded-3xl flex flex-col justify-between space-y-4 hover:border-pink-500/30 transition-all duration-500">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">System Diagnostic</p>
-                        <h3 class="text-xl font-bold mt-1 text-white">Security Integrity</h3>
+                        <p class="text-[10px] font-bold text-pink-300/70 uppercase tracking-widest">Love Protocols</p>
+                        <h3 class="text-lg font-bold mt-1 text-pink-50">Operations</h3>
                     </div>
-                    <span class="p-2.5 bg-violet-500/10 text-violet-400 rounded-xl"><i class="fa-solid fa-shield-halved text-lg"></i></span>
+                    <span class="text-violet-400 bg-violet-500/10 p-2.5 rounded-xl"><i class="fa-solid fa-wand-magic-sparkles text-lg"></i></span>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="alert('All system protocols bypassed. Anonymous token allowed.')" class="flex-1 bg-white/5 hover:bg-white/10 text-slate-300 font-medium py-1.5 px-3 rounded-xl text-xs transition-all border border-white/5">
-                        Test Sync
+                    <button onclick="alert('Romantic Systems are 100% Active. ❤️')" class="flex-1 bg-black/40 hover:bg-black/60 text-pink-200 font-medium py-2 px-3 rounded-xl text-xs transition-all border border-pink-500/20">
+                        Check Vibes
                     </button>
-                    <button onclick="location.reload()" class="bg-white/5 hover:bg-white/10 text-slate-300 p-1.5 rounded-xl text-xs transition-all border border-white/5">
-                        <i class="fa-solid fa-rotate"></i>
+                    <button onclick="location.reload()" class="bg-black/40 hover:bg-black/60 text-pink-200 px-4 rounded-xl text-xs transition-all border border-pink-500/20">
+                        <i class="fa-solid fa-rotate-right"></i>
                     </button>
                 </div>
             </div>
-
         </div>
 
-        <section class="premium-card p-6 rounded-3xl space-y-4">
-            <h2 class="text-lg font-bold flex items-center gap-2 text-white">
-                <i class="fa-solid fa-paper-plane text-pink-500 text-sm"></i> Push Live Content Broadcast Message
+        <!-- ROMANTIC BROADCAST BLOCK -->
+        <section class="premium-card p-6 md:p-8 rounded-3xl space-y-6">
+            <h2 class="text-xl font-bold flex items-center gap-2 text-pink-100">
+                <i class="fa-solid fa-envelope-open-heart text-rose-500"></i> Send a Romantic Surprise 💌
             </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="space-y-1.5">
-                    <label class="text-xs text-slate-400 font-medium tracking-wide">Headline Title</label>
-                    <input type="text" id="bc-title" placeholder="e.g., Missing You Extensively..." class="w-full bg-black/40 text-sm border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none custom-glow transition-all">
+            <div class="grid grid-cols-1 gap-5">
+                <div class="space-y-2">
+                    <label class="text-[11px] text-pink-300 font-bold tracking-widest uppercase">Catchy Title / Pet Name</label>
+                    <input type="text" id="bc-title" placeholder="e.g., Distance Means Nothing, Jaan..." class="w-full bg-black/30 text-sm border border-pink-500/20 rounded-xl px-4 py-3.5 text-pink-50 focus:outline-none custom-glow transition-all placeholder:text-pink-400/40">
                 </div>
-                <div class="space-y-1.5 md:col-span-2">
-                    <label class="text-xs text-slate-400 font-medium tracking-wide">Type Romantic Message / Info Update</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="bc-msg" placeholder="Write anything beautiful here..." class="w-full bg-black/40 text-sm border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none custom-glow transition-all">
-                        <select id="bc-mood" class="bg-black/40 text-sm border border-white/10 rounded-xl px-3 py-3 text-white focus:outline-none custom-glow transition-all cursor-pointer">
-                            <option value="💖">💖 Love</option>
-                            <option value="🥺">🥺 Soft</option>
-                            <option value="🌹">🌹 Rose</option>
-                            <option value="👑">👑 Queen</option>
-                            <option value="✨">✨ Magic</option>
-                        </select>
-                        <button onclick="dispatchBroadcast()" class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 font-semibold px-6 rounded-xl text-sm transition-all shadow-lg shadow-pink-500/20 active:scale-95 whitespace-nowrap">
-                            Update App Instantly
-                        </button>
+                
+                <div class="space-y-2">
+                    <label class="text-[11px] text-pink-300 font-bold tracking-widest uppercase">Type Your Feelings</label>
+                    <textarea id="bc-msg" rows="4" placeholder="Pour your heart out... write a long, sweet message here for her to read! 💕" class="w-full bg-black/30 text-sm border border-pink-500/20 rounded-xl px-4 py-3.5 text-pink-50 focus:outline-none custom-glow transition-all resize-none placeholder:text-pink-400/40"></textarea>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[11px] text-pink-300 font-bold tracking-widest uppercase">Pick a Vibe</label>
+                    <div class="flex gap-2.5 overflow-x-auto pb-2 scrollbar-hide" id="emoji-container">
+                        <input type="hidden" id="bc-mood" value="💖">
+                        <button type="button" onclick="selectEmoji('💖', this)" class="emoji-btn active-emoji text-3xl p-3 rounded-2xl bg-pink-500/30 border border-pink-400/60 transition-all shadow-[0_0_15px_rgba(236,72,153,0.3)]">💖</button>
+                        <button type="button" onclick="selectEmoji('💋', this)" class="emoji-btn text-3xl p-3 rounded-2xl bg-black/30 border border-pink-500/10 hover:bg-pink-900/30 transition-all">💋</button>
+                        <button type="button" onclick="selectEmoji('😘', this)" class="emoji-btn text-3xl p-3 rounded-2xl bg-black/30 border border-pink-500/10 hover:bg-pink-900/30 transition-all">😘</button>
+                        <button type="button" onclick="selectEmoji('😍', this)" class="emoji-btn text-3xl p-3 rounded-2xl bg-black/30 border border-pink-500/10 hover:bg-pink-900/30 transition-all">😍</button>
+                        <button type="button" onclick="selectEmoji('🌹', this)" class="emoji-btn text-3xl p-3 rounded-2xl bg-black/30 border border-pink-500/10 hover:bg-pink-900/30 transition-all">🌹</button>
+                        <button type="button" onclick="selectEmoji('🥺', this)" class="emoji-btn text-3xl p-3 rounded-2xl bg-black/30 border border-pink-500/10 hover:bg-pink-900/30 transition-all">🥺</button>
+                        <button type="button" onclick="selectEmoji('💍', this)" class="emoji-btn text-3xl p-3 rounded-2xl bg-black/30 border border-pink-500/10 hover:bg-pink-900/30 transition-all">💍</button>
+                        <button type="button" onclick="selectEmoji('✨', this)" class="emoji-btn text-3xl p-3 rounded-2xl bg-black/30 border border-pink-500/10 hover:bg-pink-900/30 transition-all">✨</button>
                     </div>
+                </div>
+
+                <div class="pt-3">
+                    <button onclick="dispatchBroadcast()" class="w-full bg-gradient-to-r from-pink-500 to-rose-600 text-white hover:from-pink-600 hover:to-rose-700 font-bold px-6 py-4 rounded-xl text-base transition-all shadow-[0_0_20px_rgba(236,72,153,0.4)] active:scale-95 tracking-wide">
+                        <i class="fa-solid fa-paper-plane mr-2"></i> Update Sana's App Now
+                    </button>
                 </div>
             </div>
         </section>
 
+        <!-- SANA'S ACTIVITY LOG DIARY -->
         <section class="premium-card p-6 rounded-3xl space-y-4">
             <div class="flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div class="w-2.5 h-2.5 rounded-full bg-pink-500 animate-ping"></div>
-                    <h2 class="text-lg font-bold text-white">Sana's Real-Time Activity Interface Logs</h2>
+                <div class="flex items-center gap-3">
+                    <div class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></div>
+                    <h2 class="text-sm font-bold text-pink-100 uppercase tracking-wide">Sana's Live Diary 📖</h2>
                 </div>
-                <button onclick="clearStreamEngine()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold px-4 py-2 rounded-xl transition-all active:scale-95 flex items-center gap-2">
-                    <i class="fa-solid fa-trash-can"></i> Clear Stream Terminal
+                <button onclick="clearStreamEngine()" class="bg-black/40 hover:bg-rose-900/40 text-pink-300 hover:text-rose-300 border border-pink-500/20 hover:border-rose-500/40 text-[10px] uppercase font-bold px-4 py-2.5 rounded-xl transition-all active:scale-95 flex items-center gap-2">
+                    <i class="fa-solid fa-broom"></i> Clear
                 </button>
             </div>
             
-            <div id="log-terminal" class="bg-black/50 border border-white/10 rounded-2xl p-4 h-72 overflow-y-auto mono-text text-xs space-y-2.5 shadow-inner">
-                <div class="text-slate-500 italic flex items-center gap-2"><i class="fa-solid fa-circle-notch animate-spin"></i> Initializing core logs listener engine... standing by for live triggers...</div>
+            <div id="log-terminal" class="bg-black/40 border border-pink-500/10 rounded-2xl p-4 h-72 overflow-y-auto mono-text text-xs space-y-3 shadow-inner">
+                <div class="text-pink-400/60 flex items-center gap-2"><i class="fa-solid fa-heart animate-bounce text-pink-500"></i> Waiting for Sana's magic touch...</div>
             </div>
         </section>
 
     </div>
 
+    <!-- FIREBASE & JS SCRIPT BLOCK -->
     <script>
         const firebaseConfig = {
             apiKey: "AIzaSyD40XJfbJuUymNsrFw-mPcC63ES",
@@ -180,10 +222,102 @@
             firebase.initializeApp(firebaseConfig);
         }
         const db = firebase.database();
-
         let isTerminalEmpty = true;
 
-        // HIGH TECH TIMESTAMPED LOGGER
+        // ==========================================
+        // COMMANDER PIN LOCK SYSTEM
+        // ==========================================
+        const DASHBOARD_PIN = "2705";
+        let dashPinInput = "";
+
+        function initDashKeypad() {
+            const keypad = document.getElementById('keypad');
+            const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'Clear', '0', 'Delete'];
+            
+            keys.forEach(key => {
+                const button = document.createElement('button');
+                button.className = "bg-black/30 border border-pink-500/20 text-pink-100 font-bold py-4 rounded-2xl text-xl transition-all active:bg-pink-500/20 hover:border-pink-500/40 active:scale-95 flex items-center justify-center select-none shadow-[0_0_15px_rgba(236,72,153,0.05)]";
+                
+                if (key === 'Clear') {
+                    button.innerHTML = `<span class="text-[10px] tracking-widest uppercase">Clear</span>`;
+                    button.onclick = () => handleDashKeyInput('clear');
+                } else if (key === 'Delete') {
+                    button.innerHTML = `<i class="fa-solid fa-delete-left text-rose-400"></i>`;
+                    button.onclick = () => handleDashKeyInput('delete');
+                } else {
+                    button.innerText = key;
+                    button.onclick = () => handleDashKeyInput(key);
+                }
+                keypad.appendChild(button);
+            });
+        }
+
+        function updateDashPinDots() {
+            const dots = document.querySelectorAll('.pin-dot');
+            dots.forEach((dot, index) => {
+                if (index < dashPinInput.length) {
+                    dot.classList.add('bg-rose-500', 'border-rose-500', 'scale-125', 'shadow-[0_0_15px_rgba(244,63,94,0.6)]');
+                } else {
+                    dot.classList.remove('bg-rose-500', 'border-rose-500', 'scale-125', 'shadow-[0_0_15px_rgba(244,63,94,0.6)]');
+                }
+            });
+        }
+
+        function handleDashKeyInput(action) {
+            if (action === 'clear') dashPinInput = "";
+            else if (action === 'delete') dashPinInput = dashPinInput.slice(0, -1);
+            else {
+                if (dashPinInput.length < 4) dashPinInput += action;
+            }
+            updateDashPinDots();
+
+            if (dashPinInput.length === 4) {
+                if (dashPinInput === DASHBOARD_PIN) {
+                    unlockDashboard();
+                } else {
+                    failDashPinTransition();
+                }
+            }
+        }
+
+        function failDashPinTransition() {
+            const lockScreen = document.getElementById('lock-screen');
+            lockScreen.classList.add('shake-error');
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            setTimeout(() => {
+                lockScreen.classList.remove('shake-error');
+                dashPinInput = "";
+                updateDashPinDots();
+            }, 400);
+        }
+
+        function unlockDashboard() {
+            const lockScreen = document.getElementById('lock-screen');
+            const dashContent = document.getElementById('dashboard-content');
+
+            lockScreen.classList.add('opacity-0', 'pointer-events-none');
+            dashContent.classList.remove('hidden');
+            
+            setTimeout(() => {
+                lockScreen.remove();
+                dashContent.classList.add('opacity-100');
+            }, 800);
+        }
+
+        document.addEventListener('DOMContentLoaded', initDashKeypad);
+
+        // ==========================================
+        // EXISTING SYSTEM LOGIC
+        // ==========================================
+        function selectEmoji(emoji, btnElement) {
+            document.getElementById('bc-mood').value = emoji;
+            const allBtns = document.querySelectorAll('.emoji-btn');
+            allBtns.forEach(btn => {
+                btn.className = "emoji-btn text-3xl p-3 rounded-2xl bg-black/30 border border-pink-500/10 hover:bg-pink-900/30 transition-all";
+            });
+            btnElement.className = "emoji-btn active-emoji text-3xl p-3 rounded-2xl bg-pink-500/30 border border-pink-400/60 transition-all shadow-[0_0_15px_rgba(236,72,153,0.3)]";
+        }
+
         function logEvent(messageHtml, customTime = null) {
             const terminal = document.getElementById('log-terminal');
             if (isTerminalEmpty) {
@@ -191,7 +325,6 @@
                 isTerminalEmpty = false;
             }
 
-            // Agar custom snapshot time nahi hai, toh live counter time banayega
             let timestamp = "";
             if(customTime) {
                 timestamp = customTime;
@@ -207,22 +340,18 @@
             }
 
             const newLogLine = document.createElement('div');
-            newLogLine.className = "p-2 bg-white/[0.02] border-l-2 border-pink-500/40 rounded-r-lg hover:bg-white/[0.04] transition-all flex items-start gap-2 animate-fade-in";
-            newLogLine.innerHTML = `<span class="text-slate-500 font-bold shrink-0">[${timestamp}]</span> ${messageHtml}`;
+            newLogLine.className = "p-3 bg-black/20 border-l-2 border-rose-500/60 rounded-r-xl flex items-start gap-3 hover:bg-pink-950/20 transition-all";
+            newLogLine.innerHTML = `<span class="text-rose-300 font-bold shrink-0">[${timestamp}]</span> <span class="text-pink-100 leading-relaxed">${messageHtml}</span>`;
             
             terminal.appendChild(newLogLine);
             terminal.scrollTop = terminal.scrollHeight;
         }
 
-        // ==========================================
-        // PREMIUM BEAUTIFIED HINDI LOGS ENGINE ✨ (WITH TIMESTAMP FIX)
-        // ==========================================
         db.ref('status/lastLogin').on('value', (snap) => {
             if(snap.val()) {
                 document.getElementById('live-login-time').innerText = snap.val();
-                // Last login me data ke andar hi time rehta hai isliye use nikal rahe hain
                 let extTime = snap.val().split(', ')[1] || null;
-                logEvent('<span class="text-sky-400 font-bold">🔐 [VAULT ACCESS]</span> → <span class="text-white font-medium">Sana ne password daal kar website open kar li hai!</span> 🚀', extTime);
+                logEvent('<span class="text-pink-400 font-bold">🔐 [APP UNLOCKED]</span> Sana ne abhi-abhi aapki website open ki hai! 💕', extTime);
             }
         });
 
@@ -233,14 +362,14 @@
                 const statusBox = document.getElementById('meter-status-box');
                 
                 if (val < 30) {
-                    statusBox.className = "text-xs p-2.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 font-semibold";
-                    statusBox.innerText = "Warning: Approaching danger zone! 🌋";
+                    statusBox.className = "text-[11px] p-3 rounded-xl bg-rose-950/40 text-rose-300 border border-rose-500/20 font-semibold";
+                    statusBox.innerText = "Gussa bohot zyada hai! Jaldi kuch special karo! 🌋";
                 } else if (val >= 30 && val < 75) {
-                    statusBox.className = "text-xs p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold";
-                    statusBox.innerText = "Melt down initialized... progress looks promising! 🍊";
+                    statusBox.className = "text-[11px] p-3 rounded-xl bg-amber-950/40 text-amber-300 border border-amber-500/20 font-semibold";
+                    statusBox.innerText = "Dil pighal raha hai... Keep going! 🍊";
                 } else {
-                    statusBox.className = "text-xs p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold";
-                    statusBox.innerText = "Absolute forgiveness achieved! Safe zone! 🌟";
+                    statusBox.className = "text-[11px] p-3 rounded-xl bg-emerald-950/40 text-emerald-300 border border-emerald-500/20 font-bold";
+                    statusBox.innerText = "Maan gayi! Safe zone me aagaye ho! 🥰🌟";
                 }
             }
         });
@@ -248,7 +377,7 @@
         db.ref('events/reactions').on('child_added', (snap) => {
             const data = snap.val();
             if(data) {
-                logEvent('<span class="text-pink-400 font-bold">💖 [LOVE BURST]</span> → <span class="text-pink-200 italic font-semibold">Sana aapko dher saare dil bhej rahi hai! (Clicked Floating Heart)</span> 🥰', data.time || null);
+                logEvent('<span class="text-rose-400 font-bold">💖 [LOVE BURST]</span> Sana ne aapko dher saare flying hearts bheje hain! 🥰', data.time || null);
             }
         });
 
@@ -258,42 +387,41 @@
             
             let actionText = data.action || "";
             let icon = "🎯";
-            let colorClass = "text-amber-400";
+            let colorClass = "text-sky-400";
             let timestamp = data.time || null;
             
             if(actionText.includes("scratch-1")) {
-                actionText = 'Arcade me pehla card saaf kiya: <span class="text-emerald-300 font-semibold">Dinner & Shopping Date! 🍕🛍️</span>';
+                actionText = 'Usne pehla card scratch kiya: <span class="text-emerald-300 font-bold">Dinner & Shopping Date! 🍕🛍️</span>';
                 icon = "🎁 [REWARD UNLOCKED]";
                 colorClass = "text-emerald-400";
             } else if(actionText.includes("scratch-2")) {
-                actionText = 'Arcade me dusra card saaf kiya: <span class="text-rose-300 font-semibold">Warm Tight Hug! 🤗✨</span>';
+                actionText = 'Usne dusra card scratch kiya: <span class="text-rose-300 font-bold">Warm Tight Hug! 🤗✨</span>';
                 icon = "🎁 [REWARD UNLOCKED]";
                 colorClass = "text-rose-400";
             } else if(actionText.includes("scratch-3")) {
-                actionText = 'Arcade me tisra card saaf kiya: <span class="text-cyan-300 font-semibold">Movie & Ice Cream Date! 🍦🎬</span>';
+                actionText = 'Usne tisra card scratch kiya: <span class="text-cyan-300 font-bold">Movie & Ice Cream Date! 🍦🎬</span>';
                 icon = "🎁 [REWARD UNLOCKED]";
                 colorClass = "text-cyan-400";
             } else if(actionText.includes("WhatsApp")) {
-                actionText = 'Direct to Heart se <span class="text-teal-300 font-bold">WhatsApp par message send kiya hai!</span>';
+                actionText = 'Direct to Heart se <span class="text-teal-300 font-bold">WhatsApp par message send kiya!</span>';
                 icon = "💬 [MESSAGE VENT]";
                 colorClass = "text-teal-400";
             } else {
-                actionText = 'Sana ne click kiya: ' + actionText;
-                icon = "⚡ [CLICK EVENT]";
-                colorClass = "text-yellow-400";
+                actionText = 'Sana' + "'s Activity: " + actionText;
+                icon = "⚡ [ACTION]";
+                colorClass = "text-zinc-400";
             }
             
-            logEvent('<span class="' + colorClass + ' font-bold">' + icon + '</span> → <span class="text-slate-300">' + actionText + '</span>', timestamp);
+            logEvent('<span class="' + colorClass + ' font-bold">' + icon + '</span> ' + actionText, timestamp);
         });
 
-        // DISPATCH BROADCAST SYSTEM
         function dispatchBroadcast() {
             const titleInput = document.getElementById('bc-title').value.trim();
             const msgInput = document.getElementById('bc-msg').value.trim();
             const moodInput = document.getElementById('bc-mood').value;
 
             if(!titleInput || !msgInput) {
-                alert("Bhai headline aur message dono daalna zaroori hai! 🛑");
+                alert("Please dono boxes me message daaliye taaki Sana khush ho jaye! ❤️");
                 return;
             }
 
@@ -302,20 +430,19 @@
                 message: msgInput,
                 moodEmoji: moodInput
             }).then(() => {
-                alert("Sana ke Hub par content live chala gaya! 🚀🎉");
+                alert("Surprise sent! Sana ki app par live message show ho gaya hai! 🎉💕");
                 document.getElementById('bc-title').value = "";
                 document.getElementById('bc-msg').value = "";
             }).catch((err) => {
-                alert("Error pushing data: " + err.message);
+                alert("Error sending message: " + err.message);
             });
         }
 
-        // DISMISS STREAM LOGS ENGINE
         function clearStreamEngine() {
-            if(confirm("Kya aap sach me saare logs terminal mita kar saaf karna chahte hain?")) {
+            if(confirm("Kya aap sach me saari purani pyari yaadein (logs) mitana chahte hain?")) {
                 db.ref('events/clicks').remove();
                 db.ref('events/reactions').remove();
-                document.getElementById('log-terminal').innerHTML = '<div class="text-slate-500 italic">Terminal cleared. Standing by for new live streams... 🪐</div>';
+                document.getElementById('log-terminal').innerHTML = '<div class="text-pink-400/60 italic">Diary cleared. Waiting for new moments... 💫</div>';
                 isTerminalEmpty = true;
             }
         }
